@@ -2,7 +2,6 @@ import os
 from dotenv import load_dotenv
 from firecrawl import FirecrawlApp
 
-load_dotenv()
 class ScrappingService:
     def __init__(self):
        self.api_key = os.getenv('FIRECRAWL_API_KEY')

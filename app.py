@@ -1,6 +1,7 @@
 import os
 import streamlit as st
 from dotenv import load_dotenv
+from presentation import scrapping
 load_dotenv()
 st.set_page_config(page_title="SCRAPPER DOCS", page_icon="🔥", layout="wide")
 st.title("🔥SCRAPPER Documentation🔥")
@@ -32,8 +33,8 @@ if "collection" not in st.session_state:
     st.session_state.collection = None
 
 
-    if mode == "Scrapping":
-        st.write("página de scrapping em construção...")
-    else:
-        st.write("chat page under construction...")
+if mode == "Scrapping":
+    scrapping.show()
+else:
+    st.write("chat page under construction...")
                     
