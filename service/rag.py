@@ -4,9 +4,10 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_groq import ChatGroq
-from langchain_community.chains import RetrievalQA
-from langchain_core.prompts import PromptTemplate
 
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnableMap
 
 
 class RAGService:
@@ -23,17 +24,17 @@ class RAGService:
         )
 
         self.vectorstore = None
-        self.qa_chain = None
+        self.chain = None
 
 
     def load_collection(self, collection_name):
-        collection_name = f"data/collections/{collection_name}"
+        collection_path = f"data/collections/{collection_name}"
 
         loader = DirectoryLoader(
-            collection_name,
+            collection_path,
             glob="**/*.md",
             loader_cls=TextLoader,
-            loader_kwargs={"encoding": "utf-8"}
+            loader_kwargs={"encoding": "utf-8"},
         )
 
         documents = loader.load()
@@ -43,34 +44,39 @@ class RAGService:
         texts = self.text_splitter.split_documents(documents)
         self.vectorstore = FAISS.from_documents(texts, self.embeddings)
 
-        template = """
-Use os seguintes documentos para responder a pergunta.
-Se a resposta não estiver nos documentos, diga que não sabe.
+        retriever = self.vectorstore.as_retriever(search_kwargs={"k": 3})
 
+        # Prompt moderno da versão 1.x
+        prompt = ChatPromptTemplate.from_template("""
+Responda baseado APENAS no contexto abaixo.
+Se não houver resposta nos documentos, diga que não sabe.
+
+CONTEXT:
 {context}
 
-Pergunta: {question}
-"""
+QUESTION:
+{question}
+""")
 
-        prompt = PromptTemplate(
-            template=template,
-            input_variables=["context", "question"]
-        )
-
-        self.qa_chain = RetrievalQA.from_chain_type(
-            llm=self.llm,
-            chain_type="stuff",
-            retriever=self.vectorstore.as_retriever(search_kwargs={"k": 3}),
-            chain_type_kwargs={"prompt": prompt}
+        # Pipeline de execução (novo padrão LangChain 1.x)
+        self.chain = (
+            RunnableMap({
+                "context": retriever,
+                "question": lambda x: x,
+            })
+            | prompt
+            | self.llm
+            | StrOutputParser()
         )
 
         return True
+
+
     def ask_question(self, question):
-        if not self.qa_chain:
+        if not self.chain:
             return "Coleção não carregada."
 
         try:
-            result = self.qa_chain.run(question)
-            return result
+            return self.chain.invoke(question)
         except Exception as e:
-            return f"Erro ao responder à pergunta: {str(e)}"
+            return f"Erro ao responder: {e}"

@@ -1,17 +1,17 @@
 import os
 from dotenv import load_dotenv
-from firecrawl import FirecrawlApp
+from firecrawl import Firecrawl
 
 class ScrappingService:
     def __init__(self):
        self.api_key = os.getenv('FIRECRAWL_API_KEY')
        self.api_url = os.getenv('FIRECRAWL_API_URL')
 
-       self.app = FirecrawlApp(api_key=self.api_key, api_url=self.api_url)
+       self.app = Firecrawl(api_key=self.api_key, api_url=self.api_url)
 
     def scrape_website(self,url, collection_name):
         try:
-            map_result = self.app.map_url(url)
+            map_result = self.app.map(url)
 
             if hasattr(map_result, 'links'):
                 links = map_result.links
@@ -24,7 +24,7 @@ class ScrappingService:
             print(f"Found {len(links)} links to scrape.")
 
 
-            scrape_result = self.app.batch_scrape_urls(links)
+            scrape_result = self.app.batch_scrape(links)
             if hasattr(scrape_result, 'data'):
                 scraped_data = scrape_result.data
             else: 
