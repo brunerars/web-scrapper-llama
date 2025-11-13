@@ -19,11 +19,11 @@ class ScrappingService:
             # ABORDAGEM SIMPLIFICADA: Confiando nos padrões do Firecrawl
             scraped_data = self.app.crawl(
                 url=url,
-                limit=5, # Ainda é bom ter um limite
+                limit=15, # Ainda é bom ter um limite
                 # Removendo include_paths e exclude_paths para o teste
                 scrape_options={
                     "formats": ["markdown"],
-                    "onlyMainContent": False
+                    "onlyMainContent": True
                 }
             )       
 
