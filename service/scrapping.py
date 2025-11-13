@@ -30,3 +30,27 @@ class ScrappingService:
                 scraped_data = scrape_result.data
             else: 
                 scraped_data = scrape_result.get('data',[]) if hasattr (scrape_result,'get') else [] 
+
+
+            collection_path = f"data/collections/{collection_name}"
+            os.makedirs(collection_path, exist_ok=True)
+
+            saved_count = 0
+            for i, page in enumerate(scraped_data,1):
+                if hasattr(page, 'markdown') and page.markdown:
+                    markdown_content = page.markdown
+                elif hasattr(page,'data') and hasattr(page.data,'markdown'):
+                    markdown_content = page.data.markdown
+                elif isinstance(page, dict) and page.get('markdown'):
+                    markdown_content = page.get('markdown') 
+                else:
+                    continue
+
+                with open(f"{collection_path}/page_{i}.md", "w", encoding="utf-8") as f:
+                    f.write(markdown_content)
+                    saved_count += 1
+                return {"success": True,"files":saved_count}
+            
+        except Exception as e:
+            print("Error during scraping:", str(e))
+            return {"success": False, "error": str(e)}
