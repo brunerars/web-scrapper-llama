@@ -3,14 +3,15 @@ import streamlit as st
 from dotenv import load_dotenv
 from presentation import scrapping
 from presentation import chat
+from presentation import advanced_chat
 
 load_dotenv()
 st.set_page_config(page_title="SCRAPPER DOCS", page_icon="🔥", layout="wide")
 st.title("🔥SCRAPPER Documentation🔥")
 
 with st.sidebar:
-    st.header("Coleções")
-    mode = st.radio("Modo:", ["Chat", "Scrapping"])
+    st.header("🎯 Navegação")
+    mode = st.radio("Modo:", ["💬 Chat Avançado", "Chat Simples", "🔍 Scrapping"])
     st.divider()
     st.subheader("Coleções Disponíveis")
     collections_dir = "data/collections/"
@@ -35,8 +36,10 @@ if "collection" not in st.session_state:
     st.session_state.collection = None
 
 
-if mode == "Scrapping":
+if mode == "🔍 Scrapping":
     scrapping.show()
-else:
+elif mode == "💬 Chat Avançado":
+    advanced_chat.show()
+else:  # Chat Simples
     chat.show()
                     
